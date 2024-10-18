@@ -1,16 +1,26 @@
-<Configuration status="WARN">
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="DEBUG">
     <Appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+        <Console name="LogToConsole" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
-        <File name="FileLogger" fileName="logs/app.log">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+
+        <File name="LogToFile" fileName="${sys:project.build.directory}/logs/logger4j.log">
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
         </File>
     </Appenders>
+
     <Loggers>
-        <Root level="info">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="FileLogger"/>
+        <!-- avoid duplicated logs with additivity=false -->
+        <Logger name="src.test.java" level="debug" additivity="false">
+            <AppenderRef ref="LogToConsole"/>
+        </Logger>
+
+        <Root level="trace">
+            <AppenderRef ref="LogToConsole"/>
+            <AppenderRef ref="LogToFile"/>
         </Root>
     </Loggers>
 </Configuration>

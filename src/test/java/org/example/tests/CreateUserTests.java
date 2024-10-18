@@ -1,6 +1,6 @@
 package org.example.tests;
 
-import io.qameta.allure.Step;
+import io.qameta.allure.Allure;
 import io.restassured.response.Response;
 import org.example.api.ApiConfig;
 import org.example.api.RequestCreateUser;
@@ -19,17 +19,16 @@ public class CreateUserTests {
 
     @BeforeClass
     public void setup() {
-        ApiConfig.setup();
+        Allure.step("Setup API config", ApiConfig::setup);
     }
 
     @Test
     public void createUserTest() {
-        CreateUsersBodyModel user = generateUserData();
-        Response response = sendCreateUserRequest(user);
-        validateCreateUserResponse(response, user);
+        CreateUsersBodyModel user = Allure.step("Generate user data", this::generateUserData);
+        Response response = Allure.step("Send create user request", () -> sendCreateUserRequest(user));
+        Allure.step("Validate create user response", () -> validateCreateUserResponse(response, user));
     }
 
-    @Step("Generate user data with random name and job")
     private CreateUsersBodyModel generateUserData() {
         CreateUsersBodyModel user = new CreateUsersBodyModel();
         user.setName(RandomUtils.getRandomName());
@@ -37,40 +36,35 @@ public class CreateUserTests {
         return user;
     }
 
-    @Step("Send request to create a new user")
     private Response sendCreateUserRequest(CreateUsersBodyModel user) {
         return requestCreateUser.createUser(user);
     }
 
-    @Step("Validate create user response")
     private void validateCreateUserResponse(Response response, CreateUsersBodyModel user) {
-        assertions.assertCreateUserResponse(response);
+        Allure.step("Assert create user response", () -> assertions.assertCreateUserResponse(response));
         CreateUserResponseModel createdUser = response.as(CreateUserResponseModel.class);
 
-        Assert.assertEquals(createdUser.getName(), user.getName(), "User name doesn't match");
-        Assert.assertEquals(createdUser.getJob(), user.getJob(), "User job doesn't match");
-        Assert.assertNotNull(createdUser.getId(), "User ID is null");
-        Assert.assertTrue(DateTimeCheck.isValidDateTimeFormat(createdUser.getCreatedAt()), "Invalid creation date format");
+        Allure.step("Assert user name matches", () -> Assert.assertEquals(createdUser.getName(), user.getName(), "User name doesn't match"));
+        Allure.step("Assert user job matches", () -> Assert.assertEquals(createdUser.getJob(), user.getJob(), "User job doesn't match"));
+        Allure.step("Assert user ID is not null", () -> Assert.assertNotNull(createdUser.getId(), "User ID is null"));
+        Allure.step("Assert creation date format", () -> Assert.assertTrue(DateTimeCheck.isValidDateTimeFormat(createdUser.getCreatedAt()), "Invalid creation date format"));
 
-        logCreatedUserData(createdUser);
+        Allure.step("Log created user data", () -> logCreatedUserData(createdUser));
 
-        // Modify and verify job and creation date
         createdUser.setJob("Updated Job");
         createdUser.setCreatedAt("2024-01-01T00:00:00.000Z");
 
-        Assert.assertEquals(createdUser.getJob(), "Updated Job", "Job update doesn't match");
-        Assert.assertEquals(createdUser.getCreatedAt(), "2024-01-01T00:00:00.000Z", "CreatedAt update doesn't match");
+        Allure.step("Assert job update", () -> Assert.assertEquals(createdUser.getJob(), "Updated Job", "Job update doesn't match"));
+        Allure.step("Assert creation date update", () -> Assert.assertEquals(createdUser.getCreatedAt(), "2024-01-01T00:00:00.000Z", "CreatedAt update doesn't match"));
 
-        logUpdatedUserData(createdUser);
+        Allure.step("Log updated user data", () -> logUpdatedUserData(createdUser));
     }
 
-    @Step("Log created user data")
     private void logCreatedUserData(CreateUserResponseModel createdUser) {
         System.out.println("Created User ID : " + createdUser.getId());
         System.out.println("Created User at : " + createdUser.getCreatedAt());
     }
 
-    @Step("Log updated user data")
     private void logUpdatedUserData(CreateUserResponseModel createdUser) {
         System.out.println("Updated User Job : " + createdUser.getJob());
         System.out.println("Updated CreatedAt : " + createdUser.getCreatedAt());
